@@ -1,0 +1,9 @@
+{
+    // Essas configurações foram criadas para ser alteradas pelo usuário
+    "modelo": "qwen3:8b",
+    "diretórios": {
+        "exemplo1": "/home/$USER/Downloads/",
+        "exemplo2": "/home/$USER/Documentos/"
+    }
+
+}
