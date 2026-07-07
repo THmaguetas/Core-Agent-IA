@@ -1,5 +1,6 @@
-import ollama, json, tools, inspect
+import ollama, json, storage.tools, inspect
 from pathlib import Path
+tools = storage.tools
 
 
 # carrega as configurações do user
@@ -116,7 +117,13 @@ class Agente:
         while True:
 
             response = self.llm.chat(
-                messages=self.history[-20:],
+                messages=[
+                    {
+                        "role": "system",
+                        "content": self._default_prompt()
+                    },
+                    *self.history[-80:] # limitação do contexto
+                ],
                 tools=self.tools_schema
             )
 
@@ -150,6 +157,11 @@ class Agente:
             return assistant_message
 
 
+    def _default_prompt(self):
+        dir_guide = Path("storage/guide.md")
+        return dir_guide.read_text(encoding="utf-8")
+
+
     def _convert_local(self, local: str):
         if local not in self.base_dirs:
             return None
@@ -169,5 +181,4 @@ class Agente:
             args["local"] = local
 
         return self.tools_exec[tool_name](**args)
-
 
