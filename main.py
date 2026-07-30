@@ -8,7 +8,7 @@ agent = Agente(llm)
 
 while True:
     msg = str(input(f"{user}@agent❯ "))
-    if msg in ["exit", "quit"]:
+    if msg in ["exit", "quit", "sair"]:
         break
 
     print("Assistente❯ " + agent.chat(msg))

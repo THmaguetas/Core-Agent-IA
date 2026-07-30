@@ -10,29 +10,80 @@ def _load_conf():
         return json.load(conf)
 
 
-def verify_absolute_dir():
+def verify_base_local():
     """
-    Verifica/relembra quais são os diretórios raizes disponísveis para atuar.
+    Verifica/relembra quais são os locais raizes disponísveis para atuar.
     """
     config = _load_conf()
-    return f"os diretórios base distoníveis para executar tarefas são: {list(config["diretórios"].keys())}"
+    return f"os diretórios base distoníveis para executar tarefas são: {list(config["locais"].keys())}"
+
+
+def exec_archive(local: str, arquivo: str) -> str:
+    """
+    Executa um arquivo localizado dentro de um diretório permitido.
+
+    Args:
+        local: caminho absoluto do diretório permitido.
+        arquivo: caminho relativo do arquivo a ser executado.
+
+    Retorna:
+        Resultado da execução ou mensagem de erro.
+    """
+    path = Path(local) / arquivo
+
+    if not path.exists():
+        return "Arquivo não encontrado."
+    if not path.is_file():
+        return "O caminho informado não é um arquivo."
+
+    try:
+        if path.suffix == ".py":
+            result = subprocess.run(
+                ["python", str(path)],
+                capture_output=True,
+                text=True
+            )
+        elif path.suffix == ".sh":
+            result = subprocess.run(
+                ["bash", str(path)],
+                capture_output=True,
+                text=True
+            )
+        else:
+            result = subprocess.run(
+                [str(path)],
+                capture_output=True,
+                text=True
+            )
+        if result.returncode != 0:
+            return (
+                f"Erro ao executar o arquivo.\n\n"
+                f"{result.stderr.strip()}"
+            )
+
+        return result.stdout.strip() or "Arquivo executado com sucesso."
+
+    except Exception as e:
+        return f"Erro durante a execução: {e}"
 
 
 def list_dir(local: str, dir: str = None) -> list:
     """
     Lista arquivos e pastas dentro de um diretório permitido.
-    """
 
+    Args:
+        local: Nome do local simbólico base.
+        dir: Opcional. Subpasta/subdiretório para listar (ex: 'subpasta' ou 'subpasta/outra'). Deixe None para listar a raiz do local.
+    """
     path = Path(local)
 
     if dir:
         path = path / dir
-
+        
     if not path.exists():
         return ["Diretório não encontrado"]
 
     return [item.name for item in path.iterdir()]
-
 
 def read_file(local: str, arquivo: str) -> str:
     """
@@ -75,6 +126,23 @@ def create_folder(local: str, nome: str) -> str:
     )
 
     return "Pasta criada com sucesso"
+
+
+def delete_folder(local: str, pasta: str) -> str:
+    """
+    Remove uma pasta e todo o seu conteúdo dentro de um diretório permitido.
+    """
+    path = Path(local) / pasta
+
+    if not path.exists():
+        return "Pasta não encontrada"
+
+    if not path.is_dir():
+        return "O caminho informado não é uma pasta"
+
+    shutil.rmtree(path)
+
+    return "Pasta removida com sucesso"
 
 
 def rename_file(local: str, antigo: str, novo: str) -> str:

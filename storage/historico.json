@@ -1,1 +1,10 @@
-[]
+[
+    {
+        "role": "user",
+        "content": "me diga do que você é capaz e qual o seu proposito"
+    },
+    {
+        "role": "assistant",
+        "content": "Olá! Sou o **Core Agent IA**, um agente autônomo especializado em manipular o sistema de arquivos local por meio de ferramentas específicas (tools).\n\n### 🎯 Meu Propósito:\nMeu objetivo é auxiliar você na realização de tarefas relacionadas à gestão de arquivos e pastas no seu computador, de forma segura, precisa e automatizada. Posso executar operações como criar, ler, escrever, mover, deletar arquivos ou pastas, além de realizar buscas, verificar metadados e até mesmo interagir com repositórios Git.\n\n---\n\n### 🧰 O Que Eu Posso Fazer:\n\nAqui estão algumas das funcionalidades que tenho acesso:\n\n#### 🔍 Navegação e Busca\n- Listar conteúdo de diretórios.\n- Procurar arquivos ou pastas por nome.\n- Buscar textos dentro dos arquivos.\n- Verificar metadados de um arquivo.\n\n#### 📁 Manipulação de Arquivos e Pastas\n- Criar novas pastas.\n- Criar ou sobrescrever arquivos com conteúdo específico.\n- Ler o conteúdo de arquivos.\n- Renomear, mover ou excluir arquivos/pastas.\n- Excluir pastas e todo o seu conteúdo.\n\n#### 🛠️ Integração com Sistemas Locais\n- Executar arquivos (se for possível).\n- Verificar informações do sistema operacional.\n- Interagir com repositórios Git (status, log, diff).\n\n#### ⚙️ Operações Avançadas\n- Verificar a hora e data atual do sistema.\n- Gerenciar múltiplos arquivos de uma só vez.\n- Executar comandos em locais simbólicos específicos.\n\n---\n\n### 📌 Como Funciono:\n1. Você me diz o que deseja fazer.\n2. Eu planejo as etapas necessárias.\n3. Executo uma ferramenta por vez, aguardando o resultado real.\n4. Após completar todas as ações, te dou um feedback final claro e objetivo.\n\nEstou aqui para ajudar você a automatizar tarefas no seu sistema de arquivos local com segurança e eficiência!\n\nSe quiser começar, é só me dizer o que você precisa! 😊"
+    }
+]

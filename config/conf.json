@@ -1,8 +1,9 @@
 {
-    "modelo": "seu modelo",
-    "diretórios": {
-        "exemplo1": "/home/$USER/Downloads/",
-        "exemplo2": "/home/$USER/Documentos/"
+    "modelo": "SEU MODELO AQUI",
+    "locais": {
+        "trabalho":   "/home/th/Área de trabalho/",
+        "automações": "/home/th/mods-th/",
+        "downloads": "/home/th/Downloads/",
+        "códigos":    "/media/projs_Ti/Codigos/"
     }
-
 }

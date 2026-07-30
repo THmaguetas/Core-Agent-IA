@@ -26,7 +26,7 @@ def save_history(data):
         json.dump(data, history, indent=4, ensure_ascii=False)
 
 
-# lista as funções presentes no arquivo de tools
+# carrega as funções reais das ferramentas para o modelo usar
 def load_tools(module):
     tools_map = {}
 
@@ -83,6 +83,7 @@ def build_tool_schema(ferramentas):
     return schema
 
 
+
 # comunicação com a biblioteca do Ollama
 class OllamaClient:
     def __init__(self, model: str = None):
@@ -98,14 +99,15 @@ class OllamaClient:
 
 
 
-# Agente --intermediário entre o modelo e as ferramentas--
+# Agente <intermediário entre o modelo e as ferramentas>
 class Agente:
     def __init__(self, llm):
         self.llm = llm
         self.tools_schema = build_tool_schema(tools)
         self.tools_exec = load_tools(tools)
         self.history = load_history()
-        self.base_dirs = config["diretórios"]
+        self.locals = config["locais"]
+        self.current_local = None
 
 
     def chat(self, message: str):
@@ -115,57 +117,75 @@ class Agente:
         })
 
         while True:
-
             response = self.llm.chat(
                 messages=[
                     {
                         "role": "system",
                         "content": self._default_prompt()
                     },
-                    *self.history[-80:] # limitação do contexto
+                    *self.history[-100:]    # Limita o contexto em 100 requests
                 ],
                 tools=self.tools_schema
             )
 
-            message = response["message"]
+            message_obj = response["message"].model_dump(exclude_none=True)
 
-            if message.get("tool_calls"):
+            if message_obj.get("tool_calls"):
+                self.history.append(message_obj)
 
-                for tool_call in message["tool_calls"]:
-
+                for tool_call in message_obj["tool_calls"]:
                     tool_name = tool_call["function"]["name"]
-                    args = tool_call["function"]["arguments"]
+                    raw_args = tool_call["function"]["arguments"]
+                    exec_args = raw_args.copy()
 
-                    result = self._execute_tool(tool_name, args)
+                    result = self._execute_tool(tool_name, exec_args)
 
                     self.history.append({
                         "role": "tool",
                         "name": tool_name,
-                        "content": str(result)
+                        "content": json.dumps(
+                            {
+                                "tool": tool_name,
+                                "arguments": raw_args,
+                                "result": result
+                            },
+                            ensure_ascii=False
+                        )
                     })
-
                 continue
 
-            assistant_message = message["content"]
+            assistant_message = message_obj.get("content") or ""
+
+            if not assistant_message.strip():
+                prompt_provocacao = "A ferramenta foi executada com sucesso. Por favor, apresente o resultado final formatado ao usuário."
+
+                if self.history and self.history[-1].get("content") == prompt_provocacao:
+                    assistant_message = "Tarefa concluída com sucesso!"
+                else:
+                    self.history.append({
+                        "role": "user",
+                        "content": prompt_provocacao
+                    })
+                    continue
 
             self.history.append({
                 "role": "assistant",
                 "content": assistant_message
             })
-
+            
             save_history(self.history)
             return assistant_message
 
 
     def _default_prompt(self):
-        dir_guide = Path("storage/guide.md")
-        return dir_guide.read_text(encoding="utf-8")
+        guide = Path("storage/guide.md")
+        return guide.read_text(encoding="utf-8")
 
 
     def _convert_local(self, local: str):
-        if local not in self.base_dirs:
+        if local not in self.locals:
             return None
-        return self.base_dirs[local]
+        return self.locals[local]
 
 
     def _execute_tool(self, tool_name: str, args: dict):
@@ -173,12 +193,18 @@ class Agente:
             return f"Tool '{tool_name}' não existe"
 
         if "local" in args:
-            local = self._convert_local(args.pop("local"))
+            local_simbolico = args["local"]
 
-            if local is None:
-                return "Local inexistente."
-
-            args["local"] = local
-
+            if local_simbolico in self.locals:
+                caminho_absoluto = self._convert_local(local_simbolico)
+                self.current_local = local_simbolico
+                args["local"] = caminho_absoluto
+            
+            elif not self.current_local:
+                return f"Local '{local_simbolico}' inexistente ou não configurado."
+            
+            else:
+                args["local"] = self._convert_local(self.current_local)
+                
         return self.tools_exec[tool_name](**args)
 
